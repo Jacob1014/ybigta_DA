@@ -50,28 +50,18 @@ FROM orders
 WHERE orderDate LIKE '2005-01%';
 
 #7
-
-SELECT p.customerNumber, SUM(amount) as payAmounts
-	FROM payments as p
-	LEFT JOIN customers as c
-	ON p.customerNumber = c.customerNumber
-	WHERE paymentDate LIKE '2004-11%'
-	GROUP BY p.customerNumber
-	ORDER BY payAmounts desc
-	limit 1;
-
-SELECT *
-FROM employees
-JOIN (SELECT *
-	FROM customers as C
-	JOIN (SELECT p.customerNumber, SUM(amount) as payAmounts
-		  FROM payments as p
-		  LEFT JOIN customers as c
-		  ON p.customerNumber = c.customerNumber
-		  WHERE paymentDate LIKE '2004%'
-		  GROUP BY p.customerNumber
-		  ORDER BY payAmounts desc
-		  limit 1) as t1
-	ON C.customerNumber = t1.customerNumber) AS t2
+SELECT t2.customerNumber as purchasingKing, employees.*
+FROM (
+    SELECT customers.*, t1.amount
+	FROM (
+		SELECT customerNumber, SUM(amount) as amount
+		FROM payments
+		WHERE paymentDate LIKE '2004%'
+		GROUP BY customerNumber
+	) t1
+	INNER JOIN customers ON t1.customerNumber = customers.customerNumber
+    ORDER BY amount desc
+    limit 1
+    ) t2
+INNER JOIN employees
 ON employees.employeeNumber = t2.salesRepEmployeeNumber;
-
